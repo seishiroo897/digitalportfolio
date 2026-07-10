@@ -133,7 +133,7 @@
                   <dt>Team</dt>
                   <dd>Abanes, Drew Marcian</dd>
                   <dd>Cane, Lovely</dd>
-                  <dd>Medenilla, Jomhel</dd>
+                  <dd class="team-highlight">Medenilla, Jomhel</dd>
                   <dd>Nazareth, Jeremy</dd>
                   <dd>Petalio, John Patrick</dd>
                   <dd>Reoma, Juro Azhriel</dd>
@@ -157,7 +157,6 @@
           <p>I am open for further opportunities such as internships, certifications, part-time jobs!</p>
         </div>
 
-        <!-- CONNECTED TO FORMSPREE - Replace YOUR_FORM_ID with your actual Formspree form ID -->
         <form class="cont-form" id="contactForm" action="https://formspree.io/f/mbdvndoa" method="POST" novalidate>
           <input type="hidden" name="_subject" value="New message from portfolio">
           <input type="hidden" name="_next" value="#">
@@ -186,12 +185,14 @@
   </main>
 
   <footer class="site-footer">
+    <p>&copy; 2026 Jomhel Medenilla. All rights reserved.</p>
+    <p class="footer-mono">Built with 💙 and ☕</p>
   </footer>
 
   <script src="security.js"></script>
   <script>
     // -----------------------------------------------------------------
-    // PHOTO GALLERIES — add your own pictures here any time.
+    // PHOTO GALLERIES
     // -----------------------------------------------------------------
     const galleryPhotos = {
       internship: [
@@ -212,7 +213,6 @@
       card.className = 'gallery-card';
       if (isDuplicate) card.setAttribute('aria-hidden', 'true');
       
-      // Create wrapper for image
       const imgWrapper = document.createElement('div');
       imgWrapper.className = 'gallery-img-wrapper';
       
@@ -356,75 +356,95 @@
 
     sections.forEach(section => section && observer.observe(section));
 
+    // Section fade-in animation on scroll
+    const sectionObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { 
+      threshold: 0.15,
+      rootMargin: '0px 0px -50px 0px'
+    });
+
+    document.querySelectorAll('.about-section, .exp-section, .cont-section').forEach(section => {
+      sectionObserver.observe(section);
+    });
+
     // Profile photo hover interaction
     const profileFrame = document.getElementById('profileFrame');
     const profileImg = document.getElementById('profileImg');
     
-    profileFrame.addEventListener('mousemove', (e) => {
-      const rect = profileFrame.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      const centerX = rect.width / 2;
-      const centerY = rect.height / 2;
+    if (profileFrame && profileImg) {
+      profileFrame.addEventListener('mousemove', (e) => {
+        const rect = profileFrame.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        
+        const rotateX = ((y - centerY) / centerY) * -5;
+        const rotateY = ((x - centerX) / centerX) * 5;
+        
+        profileImg.style.transform = `perspective(600px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
+      });
       
-      const rotateX = ((y - centerY) / centerY) * -5; // -5 to 5 degrees
-      const rotateY = ((x - centerX) / centerX) * 5;  // -5 to 5 degrees
-      
-      profileImg.style.transform = `perspective(600px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
-    });
-    
-    profileFrame.addEventListener('mouseleave', () => {
-      profileImg.style.transform = 'perspective(600px) rotateX(0deg) rotateY(0deg) scale(1)';
-    });
+      profileFrame.addEventListener('mouseleave', () => {
+        profileImg.style.transform = 'perspective(600px) rotateX(0deg) rotateY(0deg) scale(1)';
+      });
 
-    // Fallback if profile photo fails to load
-    profileImg.addEventListener('error', () => {
-      profileFrame.classList.add('img-fallback');
-      profileImg.remove();
-    }, { once: true });
+      profileImg.addEventListener('error', () => {
+        profileFrame.classList.add('img-fallback');
+        profileImg.remove();
+      }, { once: true });
+    }
 
-    // Contact form - connected to Formspree
+    // Contact form
     const contactForm = document.getElementById('contactForm');
     const submitBtn = document.getElementById('submitBtn');
-    const btnText = submitBtn.querySelector('.btn-text');
-    const btnLoader = submitBtn.querySelector('.btn-loader');
+    const btnText = submitBtn?.querySelector('.btn-text');
+    const btnLoader = submitBtn?.querySelector('.btn-loader');
     const formFeedback = document.getElementById('formFeedback');
 
-    contactForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      // Show loading state
-      btnText.hidden = true;
-      btnLoader.hidden = false;
-      submitBtn.disabled = true;
-      formFeedback.textContent = '';
-      
-      try {
-        const formData = new FormData(contactForm);
-        const response = await fetch(contactForm.action, {
-          method: 'POST',
-          body: formData,
-          headers: { 'Accept': 'application/json' }
-        });
+    if (contactForm) {
+      contactForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
         
-        if (response.ok) {
-          // Success!
-          formFeedback.textContent = '✅ Message sent successfully! I\'ll get back to you soon.';
-          formFeedback.style.color = '#059669';
-          contactForm.reset();
-        } else {
-          throw new Error('Form submission failed');
+        if (btnText) btnText.hidden = true;
+        if (btnLoader) btnLoader.hidden = false;
+        if (submitBtn) submitBtn.disabled = true;
+        if (formFeedback) formFeedback.textContent = '';
+        
+        try {
+          const formData = new FormData(contactForm);
+          const response = await fetch(contactForm.action, {
+            method: 'POST',
+            body: formData,
+            headers: { 'Accept': 'application/json' }
+          });
+          
+          if (response.ok) {
+            if (formFeedback) {
+              formFeedback.textContent = '✅ Message sent successfully! I\'ll get back to you soon.';
+              formFeedback.style.color = '#059669';
+            }
+            contactForm.reset();
+          } else {
+            throw new Error('Form submission failed');
+          }
+        } catch (error) {
+          if (formFeedback) {
+            formFeedback.textContent = '❌ Oops! Something went wrong. Please try again or email me directly.';
+            formFeedback.style.color = '#dc2626';
+          }
+        } finally {
+          if (btnText) btnText.hidden = false;
+          if (btnLoader) btnLoader.hidden = true;
+          if (submitBtn) submitBtn.disabled = false;
         }
-      } catch (error) {
-        formFeedback.textContent = '❌ Oops! Something went wrong. Please try again or email me directly.';
-        formFeedback.style.color = '#dc2626';
-      } finally {
-        // Reset button state
-        btnText.hidden = false;
-        btnLoader.hidden = true;
-        submitBtn.disabled = false;
-      }
-    });
+      });
+    }
   </script>
 </body>
 </html>
