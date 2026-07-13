@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,19 +19,29 @@
     <div class="header-inner">
       <a href="#home" class="logo">&lt;jm/&gt;</a>
 
-      <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="primaryNav">
-        <span class="nav-toggle-bar"></span>
-        <span class="nav-toggle-bar"></span>
-        <span class="nav-toggle-bar"></span>
-        <span class="sr-only">Toggle menu</span>
-      </button>
-
       <nav class="hometabs primary-nav" id="primaryNav" aria-label="Primary">
         <a href="#home" data-nav>Home</a>
         <a href="#about" data-nav>About</a>
         <a href="#exp" data-nav>Experience</a>
         <a href="#cont" data-nav>Contact</a>
       </nav>
+
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+        <svg class="theme-icon theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+        <svg class="theme-icon theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="5"/>
+          <line x1="12" y1="1" x2="12" y2="3"/>
+          <line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/>
+          <line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+      </button>
     </div>
   </header>
 
@@ -190,6 +200,25 @@
   <script src="security.js"></script>
   <script>
     // -----------------------------------------------------------------
+    // DARK MODE TOGGLE
+    // -----------------------------------------------------------------
+    const themeToggle = document.getElementById('themeToggle');
+    const html = document.documentElement;
+    
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      html.setAttribute('data-theme', savedTheme);
+    }
+    
+    themeToggle.addEventListener('click', () => {
+      const currentTheme = html.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      
+      html.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+    });
+
+    // -----------------------------------------------------------------
     // PHOTO GALLERIES
     // -----------------------------------------------------------------
     const galleryPhotos = {
@@ -303,26 +332,36 @@
       initGallery(el, galleryPhotos[el.dataset.gallery]);
     });
 
-    // Mobile nav toggle
+    // -----------------------------------------------------------------
+    // MOBILE NAV TOGGLE
+    // (Guarded: this build's HTML has no #navToggle button, so these
+    // listeners only attach when one actually exists. Previously this
+    // code assumed the button always existed, and calling
+    // addEventListener on the resulting `null` threw an error that
+    // silently stopped every line of JS below it — including the
+    // section fade-in and scroll-spy nav highlighting further down.)
+    // -----------------------------------------------------------------
     const navToggle = document.getElementById('navToggle');
     const primaryNav = document.getElementById('primaryNav');
 
-    navToggle.addEventListener('click', () => {
-      const isOpen = primaryNav.classList.toggle('open');
-      navToggle.setAttribute('aria-expanded', String(isOpen));
-    });
+    if (navToggle && primaryNav) {
+      navToggle.addEventListener('click', () => {
+        const isOpen = primaryNav.classList.toggle('open');
+        navToggle.setAttribute('aria-expanded', String(isOpen));
+      });
+    }
 
     primaryNav.querySelectorAll('a').forEach(link => {
       link.addEventListener('click', () => {
         primaryNav.classList.remove('open');
-        navToggle.setAttribute('aria-expanded', 'false');
+        if (navToggle) navToggle.setAttribute('aria-expanded', 'false');
       });
     });
 
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         primaryNav.classList.remove('open');
-        navToggle.setAttribute('aria-expanded', 'false');
+        if (navToggle) navToggle.setAttribute('aria-expanded', 'false');
       }
     });
 
@@ -355,18 +394,27 @@
     sections.forEach(section => section && observer.observe(section));
 
     // Section fade-in animation on scroll
+    const sectionsToAnimate = document.querySelectorAll('.about-section, .exp-section, .cont-section');
+    
     const sectionObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           entry.target.classList.add('visible');
+          // Unobserve after adding class to improve performance
+          sectionObserver.unobserve(entry.target);
         }
       });
     }, { 
-      threshold: 0.15,
-      rootMargin: '0px 0px -50px 0px'
+      threshold: 0.1,
+      rootMargin: '0px 0px -30px 0px'
     });
 
-    document.querySelectorAll('.about-section, .exp-section, .cont-section').forEach(section => {
+    sectionsToAnimate.forEach(section => {
+      // Make visible immediately if already in view
+      const rect = section.getBoundingClientRect();
+      if (rect.top < window.innerHeight && rect.bottom > 0) {
+        section.classList.add('visible');
+      }
       sectionObserver.observe(section);
     });
 
@@ -445,4 +493,4 @@
     }
   </script>
 </body>
-  </html>
+</html>
